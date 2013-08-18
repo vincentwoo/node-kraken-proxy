@@ -15,16 +15,42 @@ app.use (req, res) ->
   path   = req.path
   params = req.query
 
+  console.log params
+
+  options = {
+    url:   ORIGIN + path
+    wait:  true
+    lossy: true
+  }
+  resize = null
+  if params.w && params.h
+    resize = {
+      width: +params.w
+      height: +params.h
+      strategy: 'exact'
+    }
+  else if params.w
+    resize = {
+      width: +params.w
+      strategy: 'landscape'
+    }
+  else if params.h
+    resize = {
+      height: +params.h
+      strategy: 'portrait'
+    }
+  options.resize = resize if resize
+
+  console.log 'Posting to kraken with:', options
+
+  options.auth = KRAKEN_AUTH
+
   request.post {
     uri: 'https://api.kraken.io/v1/url'
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
-    body: JSON.stringify {
-      auth: KRAKEN_AUTH
-      url: ORIGIN + path
-      wait: true
-    }
+    body: JSON.stringify(options)
   }, (error, response, body) ->
     kraken_info = JSON.parse(body)
     console.log kraken_info
