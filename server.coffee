@@ -9,6 +9,7 @@ KRAKEN_AUTH = {
   api_key:    process.env.KRAKEN_API_KEY
   api_secret: process.env.KRAKEN_API_SECRET
 }
+hasHeader = request.Request.prototype.hasHeader
 
 app.use (req, res) ->
   path   = req.path
@@ -25,7 +26,20 @@ app.use (req, res) ->
       wait: true
     }
   }, (error, response, body) ->
-    res.json JSON.parse(body)
+    kraken_info = JSON.parse(body)
+    console.log kraken_info
+    if kraken_info.success
+      request.get {
+        uri: kraken_info.kraked_url
+        encoding: 'binary'
+      }, (error, response, body) ->
+        if (header = hasHeader('content-type', response.headers))
+          res.setHeader 'Content-Type', response.headers[header]
+        res.setHeader 'Content-Length', kraken_info.kraked_size
+        res.setHeader 'Cache-Control', 'public, max-age=31536000'
+        res.end body, 'binary'
+    else
+      res.json kraken_info
 
 app.listen PORT, ->
   console.log "Listening on #{PORT}"
