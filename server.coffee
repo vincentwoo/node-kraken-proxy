@@ -1,5 +1,5 @@
 # deps
-app     = require('express')()
+express = require 'express'
 request = require 'request'
 
 # config
@@ -11,11 +11,11 @@ KRAKEN_AUTH = {
 }
 hasHeader = request.Request.prototype.hasHeader
 
+app = express()
+app.use express.logger()
 app.use (req, res) ->
   path   = req.path
   params = req.query
-
-  console.log params
 
   options = {
     url:   ORIGIN + path
